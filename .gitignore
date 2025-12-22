@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+
+# Node / React
+node_modules/
+dist/
+
+# Data 
+data/
+*.csv
+*.xlsx
+*.parquet
+
+# OS
+.DS_Store
