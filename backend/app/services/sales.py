@@ -100,6 +100,17 @@ def brand_metrics(df: pd.DataFrame) :
     }
 
 def time_metrics(df: pd.DataFrame) :
+    """
+    Computes time-based metrics.
+
+    Parameters:
+    df (pd.DataFrame): DataFrame containing sales data with 'Order_Date' and
+    'Order_Revenue' columns (from predefined functions).
+
+    Returns:
+    dict: Dictionary containing monthly revenue, month-over-month growth,
+    and year-over-year growth.
+    """
     df = add_Order_Revenue(df)
 
     monthly_revenue = (
