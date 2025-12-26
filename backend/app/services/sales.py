@@ -187,4 +187,3 @@ def product_metrics(df: pd.DataFrame, n: int = 10) :
         'top_products_by_revenue': revenue.to_dict(),
         'top_products_by_units': units.to_dict()
     }
-

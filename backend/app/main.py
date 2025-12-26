@@ -1,9 +1,9 @@
 """
 Main FastAPI application for sales data metrics.
 """
-from app.services.data_store import get_sales_data, set_sales_data
 from app.services.sales import (brand_metrics, platform_metrics,
                                 product_metrics, summary_metrics, time_metrics)
+from app.utils.data_store import get_sales_data, set_sales_data
 from app.utils.loader import load_sales_file
 from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
@@ -64,10 +64,16 @@ async def upload_sales_file(file: UploadFile = File(...)):
 @app.get("/metrics/summary")
 def get_summary_metrics():
     """retrieve summary sales metrics."""
-    df = get_sales_data()
-
-    if df is None:
-        return {"error": "No data uploaded yet"}
+    try :
+        df = get_sales_data()
+    except ValueError :
+        return {
+            "total_revenue": 0,
+            "total_orders": 0,
+            "aov": 0,
+            "total_units": 0,
+            "avg_items_per_order": 0,
+        }
     return summary_metrics(df)
 
 
