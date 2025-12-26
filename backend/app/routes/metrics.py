@@ -1,3 +1,5 @@
+"""Metrics API routes for the application."""
+
 from app.services.sales import (brand_metrics, platform_metrics,
                                 product_metrics, summary_metrics, time_metrics)
 from app.utils.data_store import get_sales_data
@@ -12,7 +14,7 @@ def get_summary_metrics():
         df = get_sales_data()
         return summary_metrics(df)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/time")
@@ -21,7 +23,7 @@ def get_time_metrics():
         df = get_sales_data()
         return time_metrics(df)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/platform")
@@ -30,7 +32,7 @@ def get_platform_metrics():
         df = get_sales_data()
         return platform_metrics(df)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.get("/brand")
@@ -39,7 +41,7 @@ def get_brand_metrics():
         df = get_sales_data()
         return brand_metrics(df)
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     
 @router.get("/products")
 def get_product_metrics():
@@ -47,4 +49,4 @@ def get_product_metrics():
         df = get_sales_data()
         return product_metrics(df)
     except Exception as e:
-        raise HTTPException(status_code = 400, detail = str(e))
+        raise HTTPException(status_code = 400, detail = str(e)) from e
