@@ -1,6 +1,10 @@
+"""
+Sales data analysis service functions.
+"""
 import pandas as pd
 
-def add_Order_Revenue(df: pd.DataFrame) -> pd.DataFrame:
+
+def add_order_revenue(df: pd.DataFrame) -> pd.DataFrame:
     """ Helper function to add 'Order_Revenue' column to the DataFrame.
     Adds a new column 'Order_Revenue' to the DataFrame, calculated as
     the product of 'Quantity' and 'Price'.
@@ -11,6 +15,11 @@ def add_Order_Revenue(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
     pd.DataFrame: DataFrame with the new 'Order_Revenue' column added.
     """
+    df = df.copy()
+
+    df["Price"] = pd.to_numeric(df["Price"], errors = 'coerce')
+    df["Quantity"] = pd.to_numeric(df["Quantity"], errors = 'coerce')
+    df = df.dropna(subset = ['Price', 'Quantity'])
     df['Order_Revenue'] = df['Quantity'] * df['Price']
     return df
 
@@ -24,18 +33,21 @@ def summary_metrics(df: pd.DataFrame) -> dict:
     Returns:
     dict: Dictionary containing total revenue, average order value, and total orders.
     """
-    df = add_Order_Revenue(df)
+    df = add_order_revenue(df)
 
     total_revenue = df['Order_Revenue'].sum()
     total_orders = len(df)
     total_units = df['Quantity'].sum()
+    aov = total_revenue / total_orders if total_orders > 0 else 0.0
+    avg_items_per_order = total_units / total_orders if total_orders > 0 else 0.0
+
 
     return {
         'total_revenue': round(total_revenue, 2),
         'total_orders': int(total_orders),
-        'aov': round(float(total_revenue / total_orders), 2),
+        'aov': round(aov, 2),
         'total_units': int(total_units),
-        "avg_items_per_order": round(float(total_units / total_orders), 2),
+        "avg_items_per_order": round(avg_items_per_order, 2),
     }
 
 def platform_metrics(df: pd.DataFrame) :
@@ -49,7 +61,7 @@ def platform_metrics(df: pd.DataFrame) :
     Returns:
     dict: Dictionary containing revenue, orders, AOV, and units per order by platform.
     """
-    df = add_Order_Revenue(df)
+    df = add_order_revenue(df)
 
     revenue = df.groupby('Platform')['Order_Revenue'].sum()
     orders = df.groupby('Platform').size()
@@ -77,7 +89,7 @@ def brand_metrics(df: pd.DataFrame) :
     dict: Dictionary containing revenue, units sold, and revenue share by brand.
 
     """
-    df = add_Order_Revenue(df)
+    df = add_order_revenue(df)
 
     revenue = (
         df.groupby('Brand')['Order_Revenue']
@@ -91,7 +103,7 @@ def brand_metrics(df: pd.DataFrame) :
         .sort_values(ascending = False)
     )
 
-    revenue_share = (revenue / revenue.sum() * 100).round(2)
+    revenue_share = revenue / revenue.sum() * 100
 
     return {
         'revenue_by_brand': revenue.to_dict(),
@@ -111,7 +123,7 @@ def time_metrics(df: pd.DataFrame) :
     dict: Dictionary containing monthly revenue, month-over-month growth,
     and year-over-year growth.
     """
-    df = add_Order_Revenue(df)
+    df = add_order_revenue(df)
 
     monthly_revenue = (
         df.groupby('Year_Month')['Order_Revenue']
@@ -122,8 +134,25 @@ def time_metrics(df: pd.DataFrame) :
     mom_growth = (monthly_revenue.pct_change() * 100).round(2)
     yoy_growth = (monthly_revenue.pct_change(12) * 100).round(2)
 
+    mom_growth = (
+        mom_growth
+        .replace([float("inf"), float("-inf")], 0)
+        .fillna(0)
+        .round(2)
+    )
+
+    yoy_growth = (
+        yoy_growth
+        .replace([float("inf"), float("-inf")], 0)
+        .fillna(0)
+        .round(2)
+    )
+
+    monthly_revenue = monthly_revenue.fillna(0).round(2)
+
+
     return {
-        'monthly_revenue': monthly_revenue.to_dict(),
+        'monthly_revenue': monthly_revenue.round(2).to_dict(),
         'mom_growth': mom_growth.to_dict(),
         'yoy_growth': yoy_growth.to_dict(),
     }
@@ -138,17 +167,17 @@ def product_metrics(df: pd.DataFrame, n: int = 10) :
 
     n (int): Number of top products to return. Default is 10.
     """
-    df = add_Order_Revenue(df)
+    df = add_order_revenue(df)
 
     revenue = (
-        df.groupby('Product')['Order_Revenue']
+        df.groupby('Product_Name')['Order_Revenue']
         .sum()
         .sort_values(ascending = False)
         .head(n)
     )
 
     units = (
-        df.groupby('Product')['Quantity']
+        df.groupby('Product_Name')['Quantity']
         .sum()
         .sort_values(ascending = False)
         .head(n)
@@ -158,6 +187,4 @@ def product_metrics(df: pd.DataFrame, n: int = 10) :
         'top_products_by_revenue': revenue.to_dict(),
         'top_products_by_units': units.to_dict()
     }
-
-
 
